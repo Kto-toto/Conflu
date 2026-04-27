@@ -594,7 +594,11 @@ function confirmDelete(id,type){
 }
 async function deleteItem(id,type){
   try{
-    await api('DELETE',`/api/${type}s/${id}`);
+    // Исправляем маппинг типов для соответствия маршрутам API
+    let apiType = type;
+    if (type === 'proj') apiType = 'projects';
+    
+    await api('DELETE',`/api/${apiType}/${id}`);
     if(type==='proj')projects=projects.filter(x=>x.id!==id);
     else actives=actives.filter(x=>x.id!==id);
     updateCounts();toast('Удалено');closeMo();render();
