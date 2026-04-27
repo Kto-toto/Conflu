@@ -1,1 +1,611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regulatory Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f7f5;--s:#fff;--s2:#f0f0ed;--b:#e2e2dd;--bs:#ccccc7;--t:#18181b;--t2:#52525b;--t3:#a1a1aa;--pri:#18181b;--pri-h:#27272a;--acc:#2563eb;--acc-bg:#eff6ff;--ok:#16a34a;--ok-bg:#f0fdf4;--warn:#d97706;--warn-bg:#fffbeb;--err:#dc2626;--err-bg:#fef2f2;--purp:#7c3aed;--purp-bg:#f5f3ff;--r:6px;--rl:10px;--sh:0 1px 3px rgba(0,0,0,.05);--shl:0 8px 30px rgba(0,0,0,.1);--f:'Outfit',system-ui,sans-serif;--fm:'JetBrains Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+body{font-family:var(--f);font-size:14px;line-height:1.5;color:var(--t);background:var(--bg);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:14px;color:inherit}a{color:inherit;text-decoration:none}
+
+.app{display:flex;min-height:100vh}
+.sb{width:232px;flex-shrink:0;background:var(--s);border-right:1px solid var(--b);padding:20px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-brand{padding:0 18px 22px;display:flex;align-items:center;gap:10px}
+.sb-mark{width:28px;height:28px;background:var(--pri);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.sb-name{font-weight:600;font-size:13.5px;letter-spacing:-.01em}.sb-sub{font-size:10.5px;color:var(--t3);margin-top:1px}
+.sb-sec{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:16px 18px 6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:7px 18px;margin:1px 8px;font-size:13px;color:var(--t2);border-radius:var(--r);cursor:pointer;transition:all .1s;font-weight:500}
+.sb-item:hover{background:var(--s2);color:var(--t)}.sb-item.act{background:var(--pri);color:#fff}
+.sb-item svg{width:15px;height:15px;flex-shrink:0;stroke-width:1.8}
+.sb-item .cnt{margin-left:auto;font-size:10.5px;background:var(--s2);padding:1px 6px;border-radius:8px;color:var(--t3);font-variant-numeric:tabular-nums;font-weight:500}
+.sb-item.act .cnt{background:rgba(255,255,255,.15);color:#fff}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:3px}
+
+.mn{flex:1;min-width:0}
+.top{position:sticky;top:0;background:rgba(247,247,245,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--b);padding:10px 28px;display:flex;align-items:center;gap:12px;z-index:50}
+.srch{flex:1;max-width:380px;position:relative}
+.srch input{width:100%;background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:7px 12px 7px 34px;font-size:13px;outline:none;transition:all .12s}
+.srch input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(24,24,27,.06)}
+.srch svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--t3)}
+.top-r{margin-left:auto;display:flex;gap:8px}
+.btn{padding:7px 13px;border-radius:var(--r);font-size:12.5px;font-weight:500;transition:all .12s;display:inline-flex;align-items:center;gap:5px;border:1px solid transparent;cursor:pointer}
+.btn-p{background:var(--pri);color:#fff}.btn-p:hover{background:var(--pri-h)}
+.btn-s{background:var(--s);color:var(--t);border-color:var(--b)}.btn-s:hover{background:var(--s2)}
+.btn-d{background:var(--err-bg);color:var(--err);border-color:var(--err)}.btn-d:hover{background:#fecaca}
+.btn svg{width:13px;height:13px}
+
+.ct{padding:22px 28px 60px;max-width:1300px}
+.ph{margin-bottom:24px}
+.pb{font-size:11.5px;color:var(--t3);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.pb .sp{opacity:.5}
+.pt{font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.ps{font-size:13.5px;color:var(--t2);margin-top:5px}
+
+.sts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.st{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:16px 18px}
+.st-l{font-size:11.5px;color:var(--t2);font-weight:500;display:flex;align-items:center;gap:6px}
+.st-i{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.st-i svg{width:12px;height:12px;stroke-width:2}
+.st-v{font-size:28px;font-weight:600;margin-top:8px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.st-d{margin-top:6px;font-size:11.5px;color:var(--t3)}
+
+.fb{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.fl{display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:4px 8px;font-size:12.5px}
+.fl select{border:none;background:transparent;outline:none;font-weight:500;cursor:pointer;padding-right:14px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%2352525b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right center;background-size:10px}
+.fl-l{color:var(--t3);font-size:11.5px}
+.fl-c{margin-left:auto;font-size:12.5px;color:var(--acc);font-weight:500;padding:4px 8px;cursor:pointer}.fl-c:hover{text-decoration:underline}
+
+.tw{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);overflow:hidden}
+.th{padding:12px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between}
+.th-t{font-size:14px;font-weight:600}.th-c{font-size:11.5px;color:var(--t3);font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:8px 16px;font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--b);background:var(--s2);white-space:nowrap}
+tbody td{padding:11px 16px;border-bottom:1px solid var(--b);font-size:13px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer;transition:background .1s}
+tbody tr:hover td{background:var(--s2)}
+.c-t{font-weight:500;color:var(--t);max-width:360px}
+.c-ts{font-family:var(--fm);font-size:10.5px;color:var(--t3);margin-bottom:2px;font-weight:500}
+.new-t{display:inline-block;background:var(--acc);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:2px;letter-spacing:.04em}
+
+.bd{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.bd-d{width:5px;height:5px;border-radius:50%}
+.rh{background:var(--err-bg);color:var(--err)}.rh .bd-d{background:var(--err)}
+.rm{background:var(--warn-bg);color:var(--warn)}.rm .bd-d{background:var(--warn)}
+.rl{background:var(--ok-bg);color:var(--ok)}.rl .bd-d{background:var(--ok)}
+.bs-b{background:var(--s2);color:var(--t2);border:1px solid var(--b)}
+.prod-c{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.prod-c .pd{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.prod-tags{display:flex;flex-wrap:wrap;gap:4px}
+.dt{font-variant-numeric:tabular-nums;color:var(--t2);font-size:12.5px}
+.dt.urg{color:var(--err);font-weight:500}
+
+.pn{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);overflow:hidden}
+.pn-h{padding:12px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between}
+.pn-t{font-size:13.5px;font-weight:600}.pn-b{padding:14px 16px}
+.dg{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:24px}
+.dg3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+
+.di{display:flex;flex-direction:column;gap:8px}
+.dr{display:flex;align-items:center;gap:8px;font-size:12px}
+.dr-l{min-width:90px;color:var(--t2)}.dr-t{flex:1;height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
+.dr-f{height:100%;border-radius:3px}.dr-c{min-width:20px;text-align:right;font-weight:500;font-variant-numeric:tabular-nums}
+
+/* CALENDAR */
+.cal-m{font-size:12.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;padding:20px 0 12px;display:flex;align-items:center;gap:12px}
+.cal-m::after{content:'';flex:1;height:1px;background:var(--b)}.cal-m:first-child{padding-top:0}
+.cal-g{display:grid;grid-template-columns:72px 1fr;gap:16px;margin-bottom:14px}
+.cal-dp{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:8px 6px;text-align:center;align-self:start;position:sticky;top:64px}
+.cal-dp.urg{background:var(--err-bg);border-color:var(--err)}.cal-dp.urg .cal-dn{color:var(--err)}
+.cal-dw{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.cal-dn{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:1px 0;font-variant-numeric:tabular-nums;line-height:1}
+.cal-dm{font-size:10.5px;color:var(--t2);font-weight:500}.cal-dy{font-size:9.5px;color:var(--t3);margin-top:1px}
+.cal-rl{font-size:9.5px;margin-top:5px;padding:2px 5px;background:var(--s2);border-radius:3px;color:var(--t2);display:inline-block}
+.cal-rl.urg{background:var(--err-bg);color:var(--err);font-weight:600}
+.cal-its{display:flex;flex-direction:column;gap:7px}
+.cal-it-c{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:2px}
+.cal-cd{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:12px 14px;cursor:pointer;transition:all .12s}
+.cal-cd:hover{border-color:var(--bs);box-shadow:var(--sh)}
+.cal-cd-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;font-size:11.5px}
+.cal-cd-title{font-weight:500;font-size:13.5px;color:var(--t);line-height:1.4;margin-bottom:6px}
+.cal-cd-bot{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t3);flex-wrap:wrap}
+.cal-cd-src{display:inline-flex;align-items:center;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+.cal-cd-src.proj{background:var(--acc-bg);color:var(--acc)}.cal-cd-src.active{background:var(--purp-bg);color:var(--purp)}
+
+/* DETAIL */
+.det{display:grid;grid-template-columns:260px 1fr;gap:22px}
+.det-s{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:18px;align-self:start;position:sticky;top:72px}
+.det-m{display:flex;flex-direction:column;gap:18px}
+.dp{padding:10px 0;border-bottom:1px solid var(--b)}.dp:last-child{border-bottom:none}.dp:first-child{padding-top:0}
+.dp-k{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px}
+.dp-v{font-size:13px;color:var(--t)}
+
+.sec-t{font-size:12.5px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px;letter-spacing:.02em;text-transform:uppercase}
+.sec-tag.gr{background:var(--purp-bg);color:var(--purp)}
+.gr-bl{white-space:pre-line;font-size:13.5px;line-height:1.65;color:var(--t)}
+
+.pipe{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:4px 0}
+.pipe-s{font-size:10.5px;padding:3px 8px;border:1px solid var(--b);background:var(--s2);color:var(--t3);font-weight:500;white-space:nowrap;margin-right:-1px}
+.pipe-s:first-child{border-radius:var(--r) 0 0 var(--r)}.pipe-s:last-child{border-radius:0 var(--r) var(--r) 0;margin-right:0}
+.pipe-s.cur{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600;z-index:1;position:relative}
+.pipe-s.done{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+
+.lk-list{display:flex;flex-direction:column;gap:6px}
+.lk-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);transition:all .12s;text-decoration:none;color:var(--t)}
+.lk-item:hover{border-color:var(--acc);background:var(--s)}
+.lk-icon{width:30px;height:30px;border-radius:var(--r);background:var(--s);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;color:var(--acc);flex-shrink:0}
+.lk-icon svg{width:14px;height:14px}.lk-body{flex:1;min-width:0}
+.lk-name{font-size:13px;font-weight:500}.lk-url{font-size:10.5px;color:var(--t3);font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lk-type{font-size:9.5px;padding:2px 5px;border-radius:3px;background:var(--acc-bg);color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:.02em;flex-shrink:0}
+
+.note-list{display:flex;flex-direction:column}
+.note-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--b)}.note-item:last-child{border-bottom:none}
+.note-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);margin-top:6px;flex-shrink:0}
+.note-body{flex:1}.note-text{font-size:13px;color:var(--t);line-height:1.5}
+.note-meta{font-size:11px;color:var(--t3);margin-top:3px;font-variant-numeric:tabular-nums}
+.note-add{display:flex;gap:8px;margin-top:10px}
+.note-add input{flex:1;padding:7px 10px;border:1px solid var(--b);border-radius:var(--r);font-size:13px;outline:none}
+.note-add input:focus{border-color:var(--pri)}
+
+.mo{position:fixed;inset:0;background:rgba(24,24,27,.45);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:36px 20px;overflow-y:auto}
+.mo.open{display:flex}
+.mo-box{background:var(--s);border-radius:var(--rl);width:100%;max-width:640px;box-shadow:var(--shl)}
+.mo-h{padding:18px 22px;border-bottom:1px solid var(--b);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mo-t{font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.mo-st{font-size:11.5px;color:var(--t3);margin-top:3px;font-family:var(--fm)}
+.mo-x{width:30px;height:30px;border-radius:var(--r);color:var(--t3);display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0}
+.mo-x:hover{background:var(--s2);color:var(--t)}.mo-x svg{width:15px;height:15px}
+.mo-bd{padding:18px 22px;max-height:calc(100vh - 200px);overflow-y:auto}
+.mo-ft{padding:12px 22px;border-top:1px solid var(--b);display:flex;justify-content:space-between;align-items:center;background:var(--s2)}
+
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ff{grid-column:1/-1}
+.fg label{display:block;font-size:10.5px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:7px 10px;background:var(--s);border:1px solid var(--b);border-radius:var(--r);font-size:13px;outline:none;transition:all .12s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(24,24,27,.06)}
+.fg textarea{resize:vertical;min-height:80px;font-family:var(--f)}
+.fs{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--b)}
+.lk-er{display:grid;grid-template-columns:1fr 2fr 1fr auto;gap:5px;margin-bottom:5px;align-items:center}
+.lk-er input,.lk-er select{padding:5px 8px;border:1px solid var(--b);border-radius:var(--r);font-size:12px;outline:none;width:100%}
+.lk-er button{width:26px;height:26px;border-radius:var(--r);color:var(--t3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lk-er button:hover{background:var(--err-bg);color:var(--err)}
+.add-r{margin-top:4px;padding:6px 10px;border:1px dashed var(--bs);border-radius:var(--r);color:var(--t2);font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.add-r:hover{border-color:var(--pri);color:var(--pri);background:var(--s2)}
+.cb-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.cb-item{display:flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid var(--b);border-radius:var(--r);font-size:12px;cursor:pointer;transition:all .1s;background:var(--s);user-select:none}
+.cb-item:hover{border-color:var(--bs)}.cb-item.checked{background:var(--acc-bg);border-color:var(--acc);color:var(--acc);font-weight:500}
+.cb-item .pd{width:6px;height:6px;border-radius:2px;flex-shrink:0}
+
+.product-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.product-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:15px}
+.empty{padding:40px;text-align:center;color:var(--t3);background:var(--s);border:1px dashed var(--bs);border-radius:var(--rl);font-size:13.5px}
+
+.toast{position:fixed;bottom:22px;right:22px;background:var(--pri);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;z-index:200;opacity:0;transform:translateY(10px);transition:all .2s;pointer-events:none;box-shadow:var(--shl)}
+.toast.show{opacity:1;transform:translateY(0)}
+.loader{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--t3);font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sb">
+  <div class="sb-brand"><div class="sb-mark">RI</div><div><div class="sb-name">Regulatory Intelligence</div><div class="sb-sub">Мониторинг НПА</div></div></div>
+  <div class="sb-sec">Мониторинг</div>
+  <div class="sb-item act" data-v="dash" onclick="go('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Дашборд<span class="cnt" id="nc-proj">—</span></div>
+  <div class="sb-item" data-v="active" onclick="go('active')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Вступили в силу<span class="cnt" id="nc-act">—</span></div>
+  <div class="sb-item" data-v="cal" onclick="go('cal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Календарь</div>
+  <div class="sb-sec">Продукты</div>
+  <div class="sb-item" onclick="goProd('Кредитование')"><div class="sb-dot" style="background:#2563eb"></div>Кредитование<span class="cnt" id="pc-Кредитование">—</span></div>
+  <div class="sb-item" onclick="goProd('МФО')"><div class="sb-dot" style="background:#d97706"></div>МФО<span class="cnt" id="pc-МФО">—</span></div>
+  <div class="sb-item" onclick="goProd('Вклады')"><div class="sb-dot" style="background:#7c3aed"></div>Вклады<span class="cnt" id="pc-Вклады">—</span></div>
+  <div class="sb-item" onclick="goProd('ОСАГО')"><div class="sb-dot" style="background:#dc2626"></div>ОСАГО<span class="cnt" id="pc-ОСАГО">—</span></div>
+  <div class="sb-item" onclick="goProd('Страхование')"><div class="sb-dot" style="background:#16a34a"></div>Страхование<span class="cnt" id="pc-Страхование">—</span></div>
+</aside>
+
+<main class="mn">
+  <div class="top">
+    <div class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="gs" placeholder="Поиск по названию…" oninput="gsearch(this.value)"></div>
+    <div class="top-r">
+      <button class="btn btn-p" onclick="openNew('project')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новый проект</button>
+      <button class="btn btn-s" onclick="openNew('active')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>НПА, вступивший в силу</button>
+    </div>
+  </div>
+  <div class="ct" id="ct"><div class="loader">Загрузка…</div></div>
+</main>
+</div>
+
+<div class="mo" id="mo" onclick="hBd(event)"><div class="mo-box" id="mo-box" onclick="event.stopPropagation()"><div id="mo-in"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PRODS=['Кредитование','МФО','Вклады','ОСАГО','Страхование'];
+const PC={'Кредитование':'#2563eb','МФО':'#d97706','Вклады':'#7c3aed','ОСАГО':'#dc2626','Страхование':'#16a34a'};
+const RISKS=['Высокий','Средний','Низкий'];
+const DOC_TYPES=['Законопроект (депутатский)','Законопроект (правительственный)','Постановление Правительства','Распоряжение Правительства','Приказ ФОИВ','Указание ЦБ','Положение ЦБ'];
+const STAGES_MAP={
+  'Законопроект (депутатский)':['Инициатива','Внесён в ГД','1-е чтение','2-е чтение','3-е чтение','Принят ГД','Одобрен СФ','Подписан'],
+  'Законопроект (правительственный)':['ОРВ / regulation.gov.ru','Внесён в ГД','1-е чтение','2-е чтение','3-е чтение','Принят ГД','Одобрен СФ','Подписан'],
+  'Постановление Правительства':['Разработка','ОРВ','Принято'],
+  'Распоряжение Правительства':['Разработка','ОРВ','Принято'],
+  'Приказ ФОИВ':['Разработка','ОРВ','Подписан','Регистрация в Минюсте'],
+  'Указание ЦБ':['Обсуждение','Проект опубликован','Утверждён','Регистрация в Минюсте'],
+  'Положение ЦБ':['Обсуждение','Проект опубликован','Утверждён','Регистрация в Минюсте'],
+};
+const LINK_TYPES=['Официальный текст','Проект','Пояснительная записка','ОРВ / regulation.gov.ru','СОЗД Госдума','Сайт ЦБ','Комментарий / позиция','Другое'];
+const MO_R=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MO_S=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const DOW=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+let projects=[], actives=[], view='dash', curProd='', sq='', editLinks=[], editProds=[];
+
+// ── API ──────────────────────────────────────────────────
+async function api(method, url, body){
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(url,opts);
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function loadAll(){
+  [projects, actives] = await Promise.all([api('GET','/api/projects'), api('GET','/api/actives')]);
+  updateCounts(); render();
+}
+function updateCounts(){
+  document.getElementById('nc-proj').textContent=projects.length;
+  document.getElementById('nc-act').textContent=actives.length;
+  PRODS.forEach(p=>{
+    const el=document.getElementById('pc-'+p);
+    if(el) el.textContent=projects.filter(i=>i.products.includes(p)).length+actives.filter(i=>i.products.includes(p)).length;
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+const fd=d=>{if(!d)return'—';const[y,m,day]=d.split('-');return`${day}.${m}.${y}`};
+const dTo=d=>d?Math.ceil((new Date(d)-new Date())/864e5):999;
+const relD=d=>{if(!d)return'';const n=dTo(d);if(n===0)return'сегодня';if(n===1)return'завтра';if(n>1&&n<=30)return`через ${n} дн.`;if(n<0&&n>=-30)return`${-n} дн. назад`;return''};
+function rB(r){return`<span class="bd ${r==='Высокий'?'rh':r==='Средний'?'rm':'rl'}"><span class="bd-d"></span>${r}</span>`}
+function sB(s){return`<span class="bd bs-b">${s}</span>`}
+function pC(p){return`<span class="prod-c"><span class="pd" style="background:${PC[p]||'#888'}"></span>${p}</span>`}
+function pCs(ps){return(ps||[]).map(pC).join(' ')}
+function toast(m,ok=true){const t=document.getElementById('toast');t.textContent=m;t.style.background=ok?'var(--pri)':'var(--err)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function pipeHtml(docType,curStage){
+  const stages=STAGES_MAP[docType];if(!stages)return sB(curStage||'—');
+  const ci=stages.indexOf(curStage);
+  return`<div class="pipe">${stages.map((s,i)=>`<span class="pipe-s ${i===ci?'cur':i<ci?'done':''}">${s}</span>`).join('')}</div>`;
+}
+function linkSvg(){return'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'}
+
+// ── NAV ───────────────────────────────────────────────────
+function go(v){view=v;curProd='';sq='';document.getElementById('gs').value='';setNav();render();window.scrollTo({top:0,behavior:'smooth'})}
+function goProd(p){view='prod';curProd=p;sq='';document.getElementById('gs').value='';setNav();render();window.scrollTo({top:0,behavior:'smooth'})}
+function gsearch(q){sq=q.toLowerCase();if(!['dash','active'].includes(view)){view='dash';setNav()}render()}
+function setNav(){
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('act'));
+  const a=document.querySelector(`.sb-item[data-v="${view}"]`);if(a)a.classList.add('act');
+  if(view==='prod') document.querySelectorAll('.sb-item').forEach(el=>{if(el.textContent.trim().startsWith(curProd))el.classList.add('act')});
+}
+function render(){
+  if(view==='dash') rDash();
+  else if(view==='active') rActive();
+  else if(view==='cal') rCal();
+  else if(view==='prod') rProd();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+let flt={product:'',risk:'',docType:''};
+function rDash(){
+  let list=projects;
+  if(flt.product) list=list.filter(i=>i.products.includes(flt.product));
+  if(flt.risk) list=list.filter(i=>i.risk===flt.risk);
+  if(flt.docType) list=list.filter(i=>i.doc_type===flt.docType);
+  if(sq) list=list.filter(i=>i.title.toLowerCase().includes(sq)||i.doc_type.toLowerCase().includes(sq));
+
+  const hr=projects.filter(i=>i.risk==='Высокий').length;
+  const soon=projects.filter(i=>{const d=dTo(i.date_forecast);return d>=0&&d<=60}).length;
+  const nw=projects.filter(i=>i.is_new).length;
+  const distR=RISKS.map(r=>({l:r,c:projects.filter(i=>i.risk===r).length}));
+  const maxR=Math.max(1,...distR.map(d=>d.c));
+  const upAct=actives.filter(a=>dTo(a.date_effective)>0).sort((a,b)=>new Date(a.date_effective)-new Date(b.date_effective)).slice(0,4);
+
+  document.getElementById('ct').innerHTML=`
+  <div class="ph"><div class="pb">Regulatory Intelligence <span class="sp">/</span> Мониторинг</div><div class="pt">Проекты и инициативы</div><div class="ps">Реестр проектов нормативных актов, влияющих на продукты платформы</div></div>
+  <div class="sts">
+    <div class="st"><div class="st-l"><div class="st-i" style="background:var(--s2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>Всего проектов</div><div class="st-v">${projects.length}</div><div class="st-d">в мониторинге</div></div>
+    <div class="st"><div class="st-l"><div class="st-i" style="background:var(--err-bg);color:var(--err)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>Высокий риск</div><div class="st-v" style="color:var(--err)">${hr}</div><div class="st-d">требуют внимания</div></div>
+    <div class="st"><div class="st-l"><div class="st-i" style="background:var(--warn-bg);color:var(--warn)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>Прогноз ≤ 60 дней</div><div class="st-v" style="color:var(--warn)">${soon}</div><div class="st-d">ближайшие по срокам</div></div>
+    <div class="st"><div class="st-l"><div class="st-i" style="background:var(--acc-bg);color:var(--acc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>Новых</div><div class="st-v" style="color:var(--acc)">${nw}</div><div class="st-d">недавно добавлены</div></div>
+  </div>
+  <div class="fb">
+    <span style="font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">Фильтр</span>
+    <div class="fl"><span class="fl-l">Продукт</span><select onchange="flt.product=this.value;rDash()"><option value="">все</option>${PRODS.map(p=>`<option ${flt.product===p?'selected':''}>${p}</option>`).join('')}</select></div>
+    <div class="fl"><span class="fl-l">Риск</span><select onchange="flt.risk=this.value;rDash()"><option value="">все</option>${RISKS.map(r=>`<option ${flt.risk===r?'selected':''}>${r}</option>`).join('')}</select></div>
+    <div class="fl"><span class="fl-l">Тип</span><select onchange="flt.docType=this.value;rDash()"><option value="">все</option>${DOC_TYPES.map(d=>`<option ${flt.docType===d?'selected':''}>${d}</option>`).join('')}</select></div>
+    ${Object.values(flt).some(v=>v)?`<button class="fl-c" onclick="flt={product:'',risk:'',docType:''};rDash()">Сбросить</button>`:''}
+  </div>
+  <div class="tw">
+    <div class="th"><div class="th-t">Проекты нормативных актов</div><div class="th-c">${list.length} из ${projects.length}</div></div>
+    <table><thead><tr><th>Проект</th><th>Продукты</th><th>Риск</th><th>Стадия</th><th>Прогноз принятия</th></tr></thead>
+    <tbody>${list.length?list.map(i=>`<tr onclick="openProj(${i.id})">
+      <td><div class="c-ts">${i.doc_type} · ${i.initiator||'—'}</div><div class="c-t">${i.title}${i.is_new?'<span class="new-t">NEW</span>':''}</div></td>
+      <td><div class="prod-tags">${pCs(i.products)}</div></td>
+      <td>${rB(i.risk)}</td><td>${sB(i.stage||'—')}</td>
+      <td><span class="dt ${dTo(i.date_forecast)<=60&&dTo(i.date_forecast)>=0?'urg':''}">${fd(i.date_forecast)}</span></td>
+    </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:32px">Нет проектов по выбранным фильтрам</td></tr>'}</tbody></table>
+  </div>
+  <div class="dg">
+    <div class="pn"><div class="pn-h"><div class="pn-t">Ближайшие вступления в силу</div></div><div class="pn-b">
+      ${upAct.length?upAct.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b);cursor:pointer" onclick="openAct(${a.id})">
+        <div style="font-variant-numeric:tabular-nums;font-weight:500;min-width:72px;font-size:13px;${dTo(a.date_effective)<=30?'color:var(--err)':''}">${fd(a.date_effective)}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.title}</div><div style="font-size:11.5px;color:var(--t3);margin-top:2px">${(a.products||[]).join(', ')}</div></div>
+        <div style="font-size:11px;color:var(--t3);flex-shrink:0">${relD(a.date_effective)}</div>
+      </div>`).join(''):'<div style="font-size:13px;color:var(--t3);text-align:center;padding:20px 0">Нет предстоящих вступлений</div>'}
+    </div></div>
+    <div class="pn"><div class="pn-h"><div class="pn-t">По рискам</div></div><div class="pn-b"><div class="di">
+      ${distR.map(d=>{const cl=d.l==='Высокий'?'var(--err)':d.l==='Средний'?'var(--warn)':'var(--ok)';return`<div class="dr"><div class="dr-l">${d.l}</div><div class="dr-t"><div class="dr-f" style="width:${d.c/maxR*100}%;background:${cl}"></div></div><div class="dr-c">${d.c}</div></div>`}).join('')}
+    </div></div></div>
+  </div>`;
+}
+
+// ── ACTIVES ───────────────────────────────────────────────
+function rActive(){
+  let list=actives;
+  if(sq) list=list.filter(i=>i.title.toLowerCase().includes(sq));
+  list=[...list].sort((a,b)=>new Date(a.date_effective)-new Date(b.date_effective));
+  document.getElementById('ct').innerHTML=`
+  <div class="ph"><div class="pb">Regulatory Intelligence <span class="sp">/</span> Вступили в силу</div><div class="pt">НПА, вступившие в силу</div><div class="ps">Принятые акты с датами вступления изменений в силу</div></div>
+  <div class="tw">
+    <div class="th"><div class="th-t">НПА, вступившие в силу</div><div class="th-c">${list.length} записей</div></div>
+    <table><thead><tr><th>Акт</th><th>Продукты</th><th>Дата принятия</th><th>Вступает в силу</th></tr></thead>
+    <tbody>${list.length?list.map(a=>`<tr onclick="openAct(${a.id})">
+      <td><div class="c-ts">${a.doc_type} · ${a.issued_by||'—'}</div><div class="c-t">${a.title}</div></td>
+      <td><div class="prod-tags">${pCs(a.products)}</div></td>
+      <td class="dt">${fd(a.date_adopted)}</td>
+      <td><span class="dt ${dTo(a.date_effective)>0&&dTo(a.date_effective)<=30?'urg':''}">${fd(a.date_effective)} ${dTo(a.date_effective)>0&&relD(a.date_effective)?`<span style="font-size:10.5px;color:var(--t3)">(${relD(a.date_effective)})</span>`:''}</span></td>
+    </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:32px">Нет записей</td></tr>'}</tbody></table>
+  </div>`;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────
+function rCal(){
+  const evts=[];
+  projects.forEach(p=>{if(p.date_forecast)evts.push({date:p.date_forecast,title:p.title,products:p.products,risk:p.risk,doc_type:p.doc_type,type:'proj',id:p.id,stage:p.stage})});
+  actives.forEach(a=>{if(a.date_effective)evts.push({date:a.date_effective,title:a.title,products:a.products,doc_type:a.doc_type,type:'active',id:a.id,issued_by:a.issued_by})});
+  evts.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const byDate={};evts.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e)});
+  const byMonth={};
+  Object.keys(byDate).sort().forEach(date=>{const d=new Date(date);const mk=`${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`;if(!byMonth[mk]){byMonth[mk]={label:`${MO_R[d.getMonth()].charAt(0).toUpperCase()+MO_R[d.getMonth()].slice(1)} ${d.getFullYear()}`,dates:[]}}byMonth[mk].dates.push(date)});
+
+  const cardH=e=>{const ip=e.type==='proj';return`<div class="cal-cd" onclick="${ip?`openProj(${e.id})`:`openAct(${e.id})`}">
+    <div class="cal-cd-top"><span class="cal-cd-src ${ip?'proj':'active'}">${ip?'Проект':'Вступил в силу'}</span>${ip?rB(e.risk):''}<span style="font-size:11px;color:var(--t3)">${e.doc_type}</span></div>
+    <div class="cal-cd-title">${e.title}</div>
+    <div class="cal-cd-bot"><div class="prod-tags">${pCs(e.products)}</div>${ip&&e.stage?`<span>· ${e.stage}</span>`:''}</div>
+  </div>`};
+
+  const dateGrp=date=>{const d=new Date(date);const days=dTo(date);const isUrg=days>=0&&days<=14;const items=byDate[date];
+  return`<div class="cal-g">
+    <div class="cal-dp ${isUrg?'urg':''}">
+      <div class="cal-dw">${DOW[d.getDay()]}</div><div class="cal-dn">${d.getDate()}</div>
+      <div class="cal-dm">${MO_S[d.getMonth()]}</div><div class="cal-dy">${d.getFullYear()}</div>
+      ${days>=-30&&days<=90&&relD(date)?`<div class="cal-rl ${isUrg?'urg':''}">${relD(date)}</div>`:''}
+    </div>
+    <div class="cal-its">
+      ${items.length>1?`<div class="cal-it-c">${items.length} событий</div>`:''}
+      ${items.map(cardH).join('')}
+    </div>
+  </div>`};
+
+  document.getElementById('ct').innerHTML=`
+  <div class="ph"><div class="pb">Regulatory Intelligence <span class="sp">/</span> Календарь</div><div class="pt">Календарь изменений</div><div class="ps">Прогнозные даты принятия проектов и точные даты вступления действующих актов в силу</div></div>
+  <div style="background:var(--acc-bg);border:1px solid rgba(37,99,235,.15);border-radius:var(--rl);padding:12px 16px;margin-bottom:18px;font-size:13px;display:flex;align-items:center;gap:10px">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--acc)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span><span class="cal-cd-src proj" style="font-size:9.5px;vertical-align:1px;margin-right:4px">Проект</span>прогнозная дата принятия &nbsp;&nbsp; <span class="cal-cd-src active" style="font-size:9.5px;vertical-align:1px;margin-right:4px">Вступил в силу</span>точная дата вступления. Красным — ближайшие 14 дней.</span>
+  </div>
+  <div>${evts.length?Object.keys(byMonth).sort().map(mk=>`<div class="cal-m">${byMonth[mk].label}</div>${byMonth[mk].dates.map(dateGrp).join('')}`).join(''):'<div class="empty">Нет событий с датами</div>'}</div>`;
+}
+
+// ── PRODUCT ───────────────────────────────────────────────
+function rProd(){
+  const p=curProd;const cl=PC[p]||'#888';
+  const pList=projects.filter(i=>i.products.includes(p));
+  const aList=actives.filter(i=>i.products.includes(p));
+  const hr=pList.filter(i=>i.risk==='Высокий').length;
+  document.getElementById('ct').innerHTML=`
+  <div class="ph"><div class="pb">Regulatory Intelligence <span class="sp">/</span> Продукты <span class="sp">/</span> ${p}</div>
+    <div class="product-header"><div class="product-icon" style="background:${cl}">${p[0]}</div><div><div class="pt">${p}</div><div class="ps">Проекты и НПА, вступившие в силу</div></div></div>
+  </div>
+  <div class="dg3">
+    <div class="st"><div class="st-l">Проектов</div><div class="st-v">${pList.length}</div></div>
+    <div class="st"><div class="st-l">Высокий риск</div><div class="st-v" style="color:var(--err)">${hr}</div></div>
+    <div class="st"><div class="st-l">Вступило в силу</div><div class="st-v">${aList.length}</div></div>
+  </div>
+  ${pList.length?`<div class="tw" style="margin-bottom:20px">
+    <div class="th"><div class="th-t">Проекты</div><div class="th-c">${pList.length}</div></div>
+    <table><thead><tr><th>Проект</th><th>Риск</th><th>Стадия</th><th>Прогноз</th></tr></thead>
+    <tbody>${pList.map(i=>`<tr onclick="openProj(${i.id})"><td><div class="c-ts">${i.doc_type}</div><div class="c-t">${i.title}${i.is_new?'<span class="new-t">NEW</span>':''}</div></td><td>${rB(i.risk)}</td><td>${sB(i.stage||'—')}</td><td class="dt">${fd(i.date_forecast)}</td></tr>`).join('')}</tbody></table>
+  </div>`:''}
+  ${aList.length?`<div class="tw">
+    <div class="th"><div class="th-t">НПА, вступившие в силу</div><div class="th-c">${aList.length}</div></div>
+    <table><thead><tr><th>Акт</th><th>Принят</th><th>Вступает в силу</th></tr></thead>
+    <tbody>${aList.map(a=>`<tr onclick="openAct(${a.id})"><td><div class="c-ts">${a.doc_type}</div><div class="c-t">${a.title}</div></td><td class="dt">${fd(a.date_adopted)}</td><td><span class="dt ${dTo(a.date_effective)>0&&dTo(a.date_effective)<=30?'urg':''}">${fd(a.date_effective)}</span></td></tr>`).join('')}</tbody></table>
+  </div>`:''}
+  ${!pList.length&&!aList.length?`<div class="empty">По продукту «${p}» записей пока нет</div>`:''}`;
+}
+
+// ── CARDS ─────────────────────────────────────────────────
+function openProj(id){
+  const i=projects.find(x=>x.id===id);if(!i)return;
+  const lH=i.links&&i.links.length?`<div class="lk-list">${i.links.map(l=>`<a class="lk-item" href="${l.url}" target="_blank" rel="noopener"><div class="lk-icon">${linkSvg()}</div><div class="lk-body"><div class="lk-name">${l.title}</div><div class="lk-url">${l.url}</div></div><span class="lk-type">${l.type}</span></a>`).join('')}</div>`:'<div style="font-size:13px;color:var(--t3)">Ссылки не добавлены</div>';
+  const nH=notesHtml(i.notes,i.id,'proj');
+  document.getElementById('mo-in').innerHTML=`<style>#mo-box{max-width:1060px}</style>
+  <div class="mo-h"><div style="flex:1"><div class="mo-st">${i.doc_type} · ${i.initiator||'—'}</div><div class="mo-t" style="margin-top:4px">${i.title}${i.is_new?'<span class="new-t">NEW</span>':''}</div></div>
+    <button class="btn btn-s" onclick="openEditProj(${i.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Редактировать</button>
+    <button class="mo-x" onclick="closeMo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mo-bd" style="padding:22px 24px">
+    <div class="det">
+      <div class="det-s">
+        <div class="dp"><div class="dp-k">Продукты</div><div class="dp-v"><div class="prod-tags">${pCs(i.products)}</div></div></div>
+        <div class="dp"><div class="dp-k">Риск</div><div class="dp-v">${rB(i.risk)}</div></div>
+        <div class="dp"><div class="dp-k">Стадия</div><div class="dp-v">${pipeHtml(i.doc_type,i.stage)}</div></div>
+        <div class="dp"><div class="dp-k">Инициатор</div><div class="dp-v">${i.initiator||'—'}</div></div>
+        <div class="dp"><div class="dp-k">Дата появления</div><div class="dp-v" style="font-variant-numeric:tabular-nums">${fd(i.date_appeared)}</div></div>
+        <div class="dp"><div class="dp-k">Прогноз принятия</div><div class="dp-v" style="font-variant-numeric:tabular-nums;font-weight:500;${dTo(i.date_forecast)<=60&&dTo(i.date_forecast)>=0?'color:var(--err)':''}">${fd(i.date_forecast)}</div></div>
+      </div>
+      <div class="det-m">
+        <div class="pn"><div class="pn-h"><div class="sec-t">Суть изменений</div></div><div class="pn-b">${i.description?`<div class="gr-bl">${i.description}</div>`:'<div style="color:var(--t3)">Описание не добавлено</div>'}</div></div>
+        <div class="pn"><div class="pn-h"><div class="sec-t">Источники и документы</div></div><div class="pn-b">${lH}</div></div>
+        <div class="pn"><div class="pn-h"><div class="sec-t">Рабочие заметки <span class="sec-tag gr">GR</span></div></div><div class="pn-b">${nH}</div></div>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mo').classList.add('open');
+}
+
+function openAct(id){
+  const a=actives.find(x=>x.id===id);if(!a)return;
+  const lH=a.links&&a.links.length?`<div class="lk-list">${a.links.map(l=>`<a class="lk-item" href="${l.url}" target="_blank" rel="noopener"><div class="lk-icon">${linkSvg()}</div><div class="lk-body"><div class="lk-name">${l.title}</div><div class="lk-url">${l.url}</div></div><span class="lk-type">${l.type}</span></a>`).join('')}</div>`:'<div style="font-size:13px;color:var(--t3)">Ссылки не добавлены</div>';
+  const nH=notesHtml(a.notes,a.id,'active');
+  document.getElementById('mo-in').innerHTML=`<style>#mo-box{max-width:1060px}</style>
+  <div class="mo-h"><div style="flex:1"><div class="mo-st">${a.doc_type} · ${a.issued_by||'—'}</div><div class="mo-t" style="margin-top:4px">${a.title}</div></div>
+    <button class="btn btn-s" onclick="openEditAct(${a.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Редактировать</button>
+    <button class="mo-x" onclick="closeMo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mo-bd" style="padding:22px 24px">
+    <div class="det">
+      <div class="det-s">
+        <div class="dp"><div class="dp-k">Продукты</div><div class="dp-v"><div class="prod-tags">${pCs(a.products)}</div></div></div>
+        <div class="dp"><div class="dp-k">Принявший орган</div><div class="dp-v">${a.issued_by||'—'}</div></div>
+        <div class="dp"><div class="dp-k">Дата принятия</div><div class="dp-v" style="font-variant-numeric:tabular-nums">${fd(a.date_adopted)}</div></div>
+        <div class="dp"><div class="dp-k">Вступает в силу</div><div class="dp-v" style="font-variant-numeric:tabular-nums;font-weight:500;${dTo(a.date_effective)>0&&dTo(a.date_effective)<=30?'color:var(--err)':''}">${fd(a.date_effective)}${dTo(a.date_effective)>0?` <span style="font-size:11px;color:var(--t3)">(${relD(a.date_effective)})</span>`:''}</div></div>
+      </div>
+      <div class="det-m">
+        <div class="pn"><div class="pn-h"><div class="sec-t">Суть изменений</div></div><div class="pn-b">${a.description?`<div class="gr-bl">${a.description}</div>`:'<div style="color:var(--t3)">Описание не добавлено</div>'}</div></div>
+        <div class="pn"><div class="pn-h"><div class="sec-t">Источники и документы</div></div><div class="pn-b">${lH}</div></div>
+        <div class="pn"><div class="pn-h"><div class="sec-t">Рабочие заметки <span class="sec-tag gr">GR</span></div></div><div class="pn-b">${nH}</div></div>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('mo').classList.add('open');
+}
+
+function notesHtml(notes,id,type){
+  const list=notes&&notes.length?`<div class="note-list">${notes.map(n=>`<div class="note-item"><div class="note-dot"></div><div class="note-body"><div class="note-text">${n.text}</div><div class="note-meta">${n.date}</div></div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--t3);margin-bottom:10px">Заметок пока нет</div>';
+  return`${list}<div class="note-add"><input id="ni-${id}" placeholder="Добавить заметку…"><button class="btn btn-s" onclick="addNote('${type}',${id})">Добавить</button></div>`;
+}
+
+async function addNote(type,id){
+  const inp=document.getElementById('ni-'+id);
+  if(!inp||!inp.value.trim())return;
+  try{
+    const note=await api('POST',`/api/${type}s/${id}/notes`,{text:inp.value.trim()});
+    if(type==='proj'){const item=projects.find(x=>x.id===id);if(item)item.notes.unshift(note);openProj(id)}
+    else{const item=actives.find(x=>x.id===id);if(item)item.notes.unshift(note);openAct(id)}
+    toast('Заметка добавлена');
+  }catch(e){toast('Ошибка',false)}
+}
+
+// ── EDIT MODALS ───────────────────────────────────────────
+function openEditProj(id){const i=projects.find(x=>x.id===id);if(!i)return;editLinks=[...(i.links||[]).map(l=>({...l}))];editProds=[...(i.products||[])];showForm(i,false,'proj')}
+function openEditAct(id){const a=actives.find(x=>x.id===id);if(!a)return;editLinks=[...(a.links||[]).map(l=>({...l}))];editProds=[...(a.products||[])];showForm(a,false,'active')}
+function openNew(type){
+  editLinks=[];editProds=[];
+  if(type==='project'){const maxId=Math.max(0,...projects.map(i=>i.id));showForm({id:maxId+1,title:'',is_new:1,doc_type:DOC_TYPES[0],initiator:'',products:[],risk:'Средний',stage:'',date_appeared:new Date().toISOString().split('T')[0],date_forecast:'',description:'',links:[],notes:[]},true,'proj')}
+  else{const maxId=Math.max(0,...actives.map(i=>i.id));showForm({id:maxId+1,title:'',doc_type:'',issued_by:'',products:[],date_adopted:'',date_effective:'',description:'',links:[],notes:[]},true,'active')}
+  document.getElementById('mo').classList.add('open');
+}
+
+function showForm(item,isNew,type){
+  const ip=type==='proj';
+  const stages=ip?(STAGES_MAP[item.doc_type]||[]):[];
+  document.getElementById('mo-in').innerHTML=`<style>#mo-box{max-width:700px}</style>
+  <div class="mo-h"><div><div class="mo-st">${isNew?'Создание':'Редактирование'}</div><div class="mo-t">${isNew?(ip?'Новый проект НПА':'НПА, вступивший в силу'):item.title}</div></div>
+    <button class="mo-x" onclick="${isNew?'closeMo()':(ip?`openProj(${item.id})`:`openAct(${item.id})`)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mo-bd">
+    <div class="fs">Основное</div>
+    <div class="fr">
+      <div class="fg ff"><label>Название *</label><input id="f-title" value="${item.title||''}"></div>
+      ${ip?`
+        <div class="fg"><label>Тип документа</label><select id="f-doctype" onchange="updStages()">${DOC_TYPES.map(t=>`<option ${item.doc_type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="fg"><label>Инициатор</label><input id="f-init" value="${item.initiator||''}" placeholder="Группа депутатов, Минфин, ЦБ…"></div>
+        <div class="fg"><label>Риск</label><select id="f-risk">${RISKS.map(r=>`<option ${item.risk===r?'selected':''}>${r}</option>`).join('')}</select></div>
+        <div class="fg"><label>Стадия</label><select id="f-stage">${stages.map(s=>`<option ${item.stage===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        <div class="fg"><label>Дата появления</label><input type="date" id="f-appeared" value="${item.date_appeared||''}"></div>
+        <div class="fg"><label>Прогноз принятия</label><input type="date" id="f-forecast" value="${item.date_forecast||''}"></div>
+      `:`
+        <div class="fg"><label>Тип документа</label><input id="f-doctype-a" value="${item.doc_type||''}"></div>
+        <div class="fg"><label>Принявший орган</label><input id="f-issued" value="${item.issued_by||''}"></div>
+        <div class="fg"><label>Дата принятия</label><input type="date" id="f-adopted" value="${item.date_adopted||''}"></div>
+        <div class="fg"><label>Дата вступления в силу</label><input type="date" id="f-effective" value="${item.date_effective||''}"></div>
+      `}
+    </div>
+    <div class="fs">Продукты</div>
+    <div class="cb-wrap" id="pcbs">${PRODS.map(p=>`<div class="cb-item ${editProds.includes(p)?'checked':''}" onclick="tgProd(this,'${p}')"><span class="pd" style="background:${PC[p]}"></span>${p}</div>`).join('')}</div>
+    <div class="fs">Суть изменений</div>
+    <div class="fg"><textarea id="f-desc" placeholder="Что меняется, кого затрагивает…">${item.description||''}</textarea></div>
+    <div class="fs">Ссылки и источники</div>
+    <div id="lks-ed">${editLinks.map((l,i)=>lkRow(l,i)).join('')}</div>
+    <button class="add-r" onclick="addLk()"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Добавить ссылку</button>
+  </div>
+  <div class="mo-ft">
+    ${!isNew?`<button class="btn btn-d" onclick="confirmDelete(${item.id},'${type}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>Удалить</button>`:'<span></span>'}
+    <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="${isNew?'closeMo()':(ip?`openProj(${item.id})`:`openAct(${item.id})`)}">Отмена</button><button class="btn btn-p" onclick="saveItem(${item.id},${isNew},'${type}')">Сохранить</button></div>
+  </div>`;
+  document.getElementById('mo').classList.add('open');
+}
+
+function updStages(){
+  const dt=document.getElementById('f-doctype').value;
+  const sel=document.getElementById('f-stage');
+  sel.innerHTML=(STAGES_MAP[dt]||[]).map(s=>`<option>${s}</option>`).join('');
+}
+function tgProd(el,p){const i=editProds.indexOf(p);if(i>=0){editProds.splice(i,1);el.classList.remove('checked')}else{editProds.push(p);el.classList.add('checked')}}
+function lkRow(l,i){return`<div class="lk-er"><input placeholder="Название" value="${l.title||''}" oninput="editLinks[${i}].title=this.value"><input placeholder="URL" value="${l.url||''}" oninput="editLinks[${i}].url=this.value"><select onchange="editLinks[${i}].type=this.value">${LINK_TYPES.map(t=>`<option ${l.type===t?'selected':''}>${t}</option>`).join('')}</select><button onclick="rmLk(${i})"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`}
+function addLk(){editLinks.push({title:'',url:'',type:'Официальный текст'});document.getElementById('lks-ed').insertAdjacentHTML('beforeend',lkRow(editLinks[editLinks.length-1],editLinks.length-1))}
+function rmLk(i){editLinks.splice(i,1);document.getElementById('lks-ed').innerHTML=editLinks.map((l,j)=>lkRow(l,j)).join('')}
+
+async function saveItem(id,isNew,type){
+  const g=s=>{const el=document.getElementById(s);return el?el.value.trim():''};
+  const title=g('f-title');if(!title){toast('Укажите название',false);return}
+  const cleanLinks=editLinks.filter(l=>l.title&&l.url);
+  let data,url,method;
+  if(type==='proj'){
+    data={title,doc_type:g('f-doctype'),initiator:g('f-init'),products:editProds,risk:g('f-risk'),stage:g('f-stage'),date_appeared:g('f-appeared'),date_forecast:g('f-forecast'),description:g('f-desc'),links:cleanLinks};
+    if(isNew){url='/api/projects';method='POST'}else{url=`/api/projects/${id}`;method='PUT'}
+  }else{
+    data={title,doc_type:g('f-doctype-a'),issued_by:g('f-issued'),products:editProds,date_adopted:g('f-adopted'),date_effective:g('f-effective'),description:g('f-desc'),links:cleanLinks};
+    if(isNew){url='/api/actives';method='POST'}else{url=`/api/actives/${id}`;method='PUT'}
+  }
+  try{
+    const saved=await api(method,url,data);
+    if(isNew){if(type==='proj')projects.unshift(saved);else actives.unshift(saved)}
+    else{if(type==='proj'){const idx=projects.findIndex(x=>x.id===id);if(idx>=0)projects[idx]=saved}else{const idx=actives.findIndex(x=>x.id===id);if(idx>=0)actives[idx]=saved}}
+    updateCounts();toast(isNew?'Создано ✓':'Сохранено ✓');closeMo();render();
+  }catch(e){toast('Ошибка сохранения',false)}
+}
+
+function confirmDelete(id,type){
+  if(!confirm('Удалить запись? Это действие нельзя отменить.'))return;
+  deleteItem(id,type);
+}
+async function deleteItem(id,type){
+  try{
+    await api('DELETE',`/api/${type}s/${id}`);
+    if(type==='proj')projects=projects.filter(x=>x.id!==id);
+    else actives=actives.filter(x=>x.id!==id);
+    updateCounts();toast('Удалено');closeMo();render();
+  }catch(e){toast('Ошибка удаления',false)}
+}
+
+function closeMo(){document.getElementById('mo').classList.remove('open')}
+function hBd(e){if(e.target===e.currentTarget)closeMo()}
+
+loadAll();
+</script>
+</body>
+</html>
 
