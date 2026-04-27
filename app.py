@@ -207,7 +207,11 @@ def delete_project(pid):
     row = conn.execute('SELECT title FROM projects WHERE id=?', (pid,)).fetchone()
     title = row['title'] if row else ''
     conn.execute('DELETE FROM projects WHERE id=?', (pid,)); conn.commit(); conn.close()
-    cf.delete_project_page(title); _full_sync()
+    try:
+        cf.delete_project_page(title)
+        _full_sync()
+    except Exception as e:
+        print(f'[Warning] Не удалось удалить страницу в Confluence: {e}')
     return jsonify({'ok': True})
 
 @app.route('/api/projects/<int:pid>/notes', methods=['POST'])
@@ -259,7 +263,11 @@ def delete_active(aid):
     row = conn.execute('SELECT title FROM actives WHERE id=?', (aid,)).fetchone()
     title = row['title'] if row else ''
     conn.execute('DELETE FROM actives WHERE id=?', (aid,)); conn.commit(); conn.close()
-    cf.delete_active_page(title); _full_sync()
+    try:
+        cf.delete_active_page(title)
+        _full_sync()
+    except Exception as e:
+        print(f'[Warning] Не удалось удалить страницу в Confluence: {e}')
     return jsonify({'ok': True})
 
 @app.route('/api/actives/<int:aid>/notes', methods=['POST'])
